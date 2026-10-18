@@ -1,0 +1,49 @@
+workflows:
+  nested-livecontainer-ios-unsigned:
+    name: Nested LiveContainer App Group guard (unsigned iOS)
+    instance_type: mac_mini_m2
+    max_build_duration: 90
+    environment:
+      xcode: latest
+    scripts:
+      - name: Verify pinned App Group guard source
+        script: |
+          set -euo pipefail
+          cd "$CM_BUILD_DIR"
+          test -f LiveContainer/Tweaks/NSFileManager+GuestHooks.m
+          grep -Fq 'if(groupIdentifier.length == 0)' LiveContainer/Tweaks/NSFileManager+GuestHooks.m
+          grep -Fq 'if(!guestRoot || !guestRoot[0]) return nil;' LiveContainer/Tweaks/NSFileManager+GuestHooks.m
+          git diff --check
+      - name: Checkout maintained submodules
+        script: |
+          set -euo pipefail
+          cd "$CM_BUILD_DIR"
+          git submodule sync --recursive
+          git -c submodule.litehook.url=https://github.com/LiveContainerMirror/litehook.git submodule update --init --recursive
+      - name: Compile iOS arm64 app without Apple signing credentials
+        script: |
+          set -euo pipefail
+          cd "$CM_BUILD_DIR"
+          xcodebuild -project LiveContainer.xcodeproj \
+            -scheme LiveContainer \
+            -sdk iphoneos \
+            -configuration Release \
+            -destination 'generic/platform=iOS' \
+            -derivedDataPath "$CM_BUILD_DIR/.codemagic-derived" \
+            CODE_SIGNING_ALLOWED=NO CODE_SIGNING_REQUIRED=NO build
+          test -f "$CM_BUILD_DIR/.codemagic-derived/Build/Products/Release-iphoneos/LiveContainer.app/Info.plist"
+      - name: Archive an explicitly unsigned candidate
+        script: |
+          set -euo pipefail
+          mkdir -p "$CM_BUILD_DIR/unsigned-output/Payload"
+          cp -R "$CM_BUILD_DIR/.codemagic-derived/Build/Products/Release-iphoneos/LiveContainer.app" \
+            "$CM_BUILD_DIR/unsigned-output/Payload/"
+          cd "$CM_BUILD_DIR/unsigned-output"
+          zip -qry LiveContainer-NestedAppGroup-NOT-SIGNED.ipa Payload
+          shasum -a 256 LiveContainer-NestedAppGroup-NOT-SIGNED.ipa > sha256.txt
+          printf 'NOT SIGNED. NOT FOR DEVICE INSTALLATION. Requires separate matching-identity signing and full on-device verification.\n' > NOT_INSTALLED.txt
+    artifacts:
+      - unsigned-output/LiveContainer-NestedAppGroup-NOT-SIGNED.ipa
+      - unsigned-output/sha256.txt
+      - unsigned-output/NOT_INSTALLED.txt
+      - /tmp/xcodebuild_logs/*.log
