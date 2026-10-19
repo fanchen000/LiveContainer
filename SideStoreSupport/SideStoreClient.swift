@@ -88,6 +88,36 @@ struct SideStoreIntentCaller {
 
 @available(iOS 17.0, *)
 @objc extension SideStoreClient {
+
+    // LC_REFRESH_RESULT_XPC_V1: bounded, allowlisted non-secret metadata only.
+    // V3_RUNTIME_SHARED_REFRESH_STORE_V1: the same runtime App Group the service
+    // wrote the manifest into. Without it the result is reported unconfirmed
+    // rather than read from a store the service can never have written.
+    func reportRefreshResult(_ error: String?, server: any RefreshServer) {
+        guard let defaults = V3SharedAppGroup.sharedUserDefaults() else {
+            server.finish("SideStore could not open its refresh-state store. Refresh is unconfirmed.")
+            return
+        }
+        guard let runID = defaults.string(forKey: "liveContainerAutoRefreshExpectedRunID") else {
+            server.finish(error)
+            return
+        }
+        var payload: [String: Any] = [:]
+        for key in ["liveContainerAutoRefreshVerification", "liveContainerAutoRefreshHostHandoff", "liveContainerAutoRefreshHostHandoffRunID", "liveContainerAutoRefreshHostHandoffStartedAt", "liveContainerAutoRefreshHostPreviousExpiration"] {
+            if let value = defaults.object(forKey: key) { payload[key] = value }
+        }
+        do {
+            let data = try PropertyListSerialization.data(fromPropertyList: payload, format: .binary, options: 0)
+            guard data.count <= 262144 else {
+                server.finishRefresh("SideStore's verification results exceeded the allowed size.", runID: runID, verification: nil)
+                return
+            }
+            server.finishRefresh(error, runID: runID, verification: data)
+        } catch {
+            server.finishRefresh("SideStore could not encode installation results: " + error.localizedDescription, runID: runID, verification: nil)
+        }
+    }
+
     @objc(performRefreshForRealWithIdentifier:mangledTypeName:server:)
     func performRefreshForReal(identifier: String, mangledTypeName: String, server: any RefreshServer) {
         Task {
@@ -101,9 +131,9 @@ struct SideStoreIntentCaller {
                     }
                 }
                 obs?.invalidate()
-                server.finish(nil)
+                reportRefreshResult(nil, server: server)
             } catch {
-                server.finish(error.localizedDescription)
+                reportRefreshResult(error.localizedDescription, server: server)
             }
         }
     }
