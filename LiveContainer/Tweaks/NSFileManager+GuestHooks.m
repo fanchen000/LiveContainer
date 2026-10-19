@@ -77,10 +77,16 @@ void NSFMGuestHooksInit(void) {
             // see NSFileManager+GuestHooks.m for more info
             NSFileManager *fm = NSFileManager.defaultManager;
             const char *lcHomePath = getenv(NSUserDefaults.isLiveProcess ? "LP_HOME_PATH" : "LC_HOME_PATH");
+            const char *hostHomePath = getenv("HOME");
+            // A nested guest may call this before its environment is fully
+            // initialized. Do not construct NSStrings from null C strings.
+            if (!lcHomePath || !lcHomePath[0] || !hostHomePath || !hostHomePath[0]) {
+                return ans;
+            }
             NSString *libraryPath = [@(lcHomePath) stringByAppendingPathComponent:@"Library"];
             NSString *cookies2Path = [libraryPath stringByAppendingPathComponent:@"Cookies2"];
             NSString *cookiesPath = [libraryPath stringByAppendingPathComponent:@"Cookies"];
-            NSString* appCookiesPath = [@(getenv("HOME")) stringByAppendingPathComponent:@"Library/Cookies"];
+            NSString* appCookiesPath = [@(hostHomePath) stringByAppendingPathComponent:@"Library/Cookies"];
             BOOL isDir = NO;
             if (![fm fileExistsAtPath:cookies2Path isDirectory:&isDir]) {
                 if([fm fileExistsAtPath:cookiesPath isDirectory:&isDir]) {
