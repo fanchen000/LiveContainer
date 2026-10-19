@@ -1,0 +1,72 @@
+name: Native iOS nested LiveContainer guard (unsigned)
+run-name: Compile pinned guard 1a43f38 on macOS Xcode
+on:
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  build:
+    runs-on: macos-latest
+    timeout-minutes: 80
+    steps:
+      - name: Check out reviewed source and submodules
+        uses: actions/checkout@v4
+        with:
+          ref: ci/native-lc-nested-guard-20261019
+          submodules: recursive
+          persist-credentials: false
+      - name: Verify exact commit and patch
+        shell: bash
+        run: |
+          set -euo pipefail
+          test "$(git rev-parse HEAD)" = 1a43f38b1608ea21c761d779181cffa28d3e96d6
+          grep -Fq 'if(groupIdentifier.length == 0)' LiveContainer/Tweaks/NSFileManager+GuestHooks.m
+          grep -Fq 'if(!guestRoot || !guestRoot[0]) return nil;' LiveContainer/Tweaks/NSFileManager+GuestHooks.m
+          grep -Fq '!hostHomePath || !hostHomePath[0]' LiveContainer/Tweaks/NSFileManager+GuestHooks.m
+          git diff --check
+          printf 'PINNED_SOURCE=%s\n' "$(git rev-parse HEAD)"
+      - name: Set up Xcode 26.2 (matching upstream)
+        uses: maxim-lobanov/setup-xcode@v1
+        with:
+          xcode-version: '26.2'
+      - name: Print native toolchain
+        shell: bash
+        run: |
+          xcodebuild -version
+          xcodebuild -list -project LiveContainer.xcodeproj
+      - name: Compile device arm64 unsigned
+        shell: bash
+        run: |
+          set -o pipefail
+          xcodebuild \
+            -project LiveContainer.xcodeproj \
+            -scheme LiveContainer \
+            -configuration Release \
+            -sdk iphoneos \
+            -destination 'generic/platform=iOS' \
+            -derivedDataPath "$RUNNER_TEMP/livecontainer-guard-derived" \
+            CODE_SIGNING_ALLOWED=NO \
+            CODE_SIGNING_REQUIRED=NO \
+            build 2>&1 | tee "$RUNNER_TEMP/native-build.log"
+          test -f "$RUNNER_TEMP/livecontainer-guard-derived/Build/Products/Release-iphoneos/LiveContainer.app/Info.plist"
+      - name: Package unsigned test IPA and hash
+        shell: bash
+        run: |
+          set -euo pipefail
+          mkdir -p unsigned-output/Payload
+          cp -R "$RUNNER_TEMP/livecontainer-guard-derived/Build/Products/Release-iphoneos/LiveContainer.app" unsigned-output/Payload/
+          (cd unsigned-output && zip -qry LiveContainer-Guard-UNSIGNED.ipa Payload)
+          (cd unsigned-output && shasum -a 256 LiveContainer-Guard-UNSIGNED.ipa > sha256.txt)
+          printf 'Unsigned native compilation artifact. Do not install without preserving original bundle identity, code signing, data backup and actual verification.\n' > unsigned-output/NOT_FOR_INSTALL.txt
+      - name: Upload native logs and artifacts
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: native-ios-guard-1a43f38
+          path: |
+            ${{ runner.temp }}/native-build.log
+            unsigned-output/*.ipa
+            unsigned-output/sha256.txt
+            unsigned-output/NOT_FOR_INSTALL.txt
+          if-no-files-found: warn
+          retention-days: 7
