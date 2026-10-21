@@ -12,6 +12,8 @@ __attribute__((swift_attr("@Sendable")))
 @protocol RefreshServer
 - (void)updateProgress:(double)value;
 - (void)finish:(NSString*)error;
+// LC_REFRESH_RESULT_XPC_V1
+- (void)finishRefresh:(NSString* _Nullable)error runID:(NSString* _Nonnull)runID verification:(NSData* _Nullable)verification NS_SWIFT_NAME(finishRefresh(_:runID:verification:));
 - (void)onConnection:(NSXPCConnection*)connection;
 - (void)finishedLaunching;
 - (void)addNotificationRequest:(UNNotificationRequest*)request;
@@ -19,7 +21,7 @@ __attribute__((swift_attr("@Sendable")))
 @end
 
 @protocol RefreshClient
-- (void)refreshAllAppsWithIdentifier:(NSString*)identifier mangledTypeName:(NSString *)mangledTypeName;
+- (void)refreshAllAppsWithIdentifier:(NSString*)identifier mangledTypeName:(NSString *)mangledTypeName refreshRunID:(NSString* _Nullable)refreshRunID;
 @end
 
 @interface LiveProcessSideStoreHandler : NSObject

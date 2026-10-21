@@ -7,6 +7,8 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
+	A17ECAFE2DCA000000000001 = {isa = PBXBuildFile; fileRef = 173545A82E2C7913001B3B4C /* SideStoreSupport.framework */; };
+	A17ECAFE2DCA000000000002 = {isa = PBXBuildFile; fileRef = 173545A82E2C7913001B3B4C /* SideStoreSupport.framework */; };
 		173545AF2E2C7913001B3B4C /* SideStoreSupport.framework in Embed Frameworks */ = {isa = PBXBuildFile; fileRef = 173545A82E2C7913001B3B4C /* SideStoreSupport.framework */; settings = {ATTRIBUTES = (CodeSignOnCopy, RemoveHeadersOnCopy, ); }; };
 		17413FBC2D9C0BAE00F3F928 /* LiveContainerSwiftUI.framework in Embed Frameworks */ = {isa = PBXBuildFile; fileRef = 17413FB52D9C0BAE00F3F928 /* LiveContainerSwiftUI.framework */; settings = {ATTRIBUTES = (CodeSignOnCopy, RemoveHeadersOnCopy, ); }; };
 		174140902D9C0E8200F3F928 /* TweakLoader.dylib in Embed Frameworks */ = {isa = PBXBuildFile; fileRef = 1741403A2D9C0D0000F3F928 /* TweakLoader.dylib */; settings = {ATTRIBUTES = (CodeSignOnCopy, ); }; };
@@ -340,6 +342,7 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				A17ECAFE2DCA000000000002 /* SideStoreSupport.framework in Frameworks */,
 				E1946AD83041BFF8005CBEDD /* IOKit.framework in Frameworks */,
 				E16D95752E1CD2B90068EB63 /* LiveContainerShared.framework in Frameworks */,
 				174140D62D9C176F00F3F928 /* libarchive.tbd in Frameworks */,
@@ -372,6 +375,7 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				A17ECAFE2DCA000000000001 /* SideStoreSupport.framework in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -567,6 +571,7 @@
 			buildRules = (
 			);
 			dependencies = (
+				A17ECAFE2DCA000000000003 /* PBXTargetDependency */,
 			);
 			fileSystemSynchronizedGroups = (
 				17413FB62D9C0BAE00F3F928 /* LiveContainerSwiftUI */,
@@ -1026,6 +1031,7 @@
 /* End PBXSourcesBuildPhase section */
 
 /* Begin PBXTargetDependency section */
+	A17ECAFE2DCA000000000003 = {isa = PBXTargetDependency; target = 173545A72E2C7913001B3B4C /* SideStoreSupport */; targetProxy = 173545AC2E2C7913001B3B4C /* PBXContainerItemProxy */; };
 		173545AD2E2C7913001B3B4C /* PBXTargetDependency */ = {
 			isa = PBXTargetDependency;
 			target = 173545A72E2C7913001B3B4C /* SideStoreSupport */;
@@ -1187,7 +1193,7 @@
 					"-DCONFIG_BRANCH=\\\"$(CONFIG_BRANCH)\\\"",
 					"-DCONFIG_COMMIT=\\\"$(CONFIG_COMMIT)\\\"",
 				);
-				OTHER_LDFLAGS = "-Wl,-U,_OBJC_CLASS_$_RBSTarget";
+				OTHER_LDFLAGS = "-Wl,-U,_OBJC_CLASS_$_RBSTarget -weak_framework AlarmKit";
 				PRODUCT_BUNDLE_IDENTIFIER = com.kdtLiveContainerSwiftUI;
 				PRODUCT_NAME = "$(TARGET_NAME:c99extidentifier)";
 				SKIP_INSTALL = YES;
@@ -1230,7 +1236,7 @@
 					"-DCONFIG_BRANCH=\\\"$(CONFIG_BRANCH)\\\"",
 					"-DCONFIG_COMMIT=\\\"$(CONFIG_COMMIT)\\\"",
 				);
-				OTHER_LDFLAGS = "-Wl,-U,_OBJC_CLASS_$_RBSTarget";
+				OTHER_LDFLAGS = "-Wl,-U,_OBJC_CLASS_$_RBSTarget -weak_framework AlarmKit";
 				PRODUCT_BUNDLE_IDENTIFIER = com.kdtLiveContainerSwiftUI;
 				PRODUCT_NAME = "$(TARGET_NAME:c99extidentifier)";
 				SKIP_INSTALL = YES;
@@ -1662,6 +1668,8 @@
 				OTHER_LDFLAGS = (
 					"-e",
 					_LiveContainerMainC,
+					"-weak_framework",
+					AlarmKit,
 				);
 				PRODUCT_BUNDLE_IDENTIFIER = "$(PRODUCT_BUNDLE_IDENTIFIER)";
 				PRODUCT_NAME = LiveContainer;

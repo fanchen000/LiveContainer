@@ -82,6 +82,11 @@ struct LCSettingsView: View {
     var body: some View {
         NavigationView {
             Form {
+                if store == .SideStore {
+                    Section {
+                        NavigationLink { LCEmbeddedSideStoreRefreshView() } label: { Text("SideStore scheduled refresh") }
+                    }
+                }
                 if sharedModel.multiLCStatus != 2 {
                     Section{
                         if !certificateDataFound {
