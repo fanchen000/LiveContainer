@@ -19,6 +19,8 @@ jobs:
           submodules: false
       - name: Check scheduler and packaging declarations
         run: python3 scripts/ci/check_v3_autorefresh_source.py
+      - name: Test fail-closed offline upgrade parity policy
+        run: python3 -m unittest discover -s scripts/ci -p 'test_verify_upgrade_parity.py' -v
       - name: Check Swift package files tracked
         run: |
           git ls-files --error-unmatch \
