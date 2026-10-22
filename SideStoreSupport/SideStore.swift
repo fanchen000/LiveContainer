@@ -9,6 +9,35 @@ import Foundation
 import AppIntents
 import UserNotifications
 
+/// In-process host request that cannot be confused with a guest refresh run.
+/// The host still enforces its own scheduler and verification gates.
+public struct V3ShortcutRefreshRequest {
+    public let requestID: String
+    public let origin: String
+
+    private init(requestID: String, origin: String) {
+        self.requestID = requestID
+        self.origin = origin
+    }
+
+    public static func make() -> V3ShortcutRefreshRequest {
+        V3ShortcutRefreshRequest(requestID: UUID().uuidString, origin: "shortcut")
+    }
+
+    public var userInfo: [AnyHashable: Any] {
+        ["requestID": requestID, "origin": origin]
+    }
+
+    public init?(userInfo: [AnyHashable: Any]?) {
+        guard let userInfo,
+              let id = userInfo["requestID"] as? String,
+              UUID(uuidString: id) != nil,
+              userInfo["origin"] as? String == "shortcut" else { return nil }
+        self.requestID = id
+        self.origin = "shortcut"
+    }
+}
+
 @available(iOS 17.0, *)
 func performIntentRefresh(identifier: String, mangledTypeName: String, intentProgress: Progress) async throws {
     // LC_REFRESH_INTENT_TO_HOST_SCHEDULER_V1: a host shortcut requests work from
@@ -104,6 +133,18 @@ class RefreshHandler: NSObject, RefreshServer {
     var ext: NSExtension? = nil
     
     static var shared = RefreshHandler()
+
+    func startScheduledRefresh(identifier: String, mangledName: String,
+                               runID: String) async throws {
+        guard UUID(uuidString: runID) != nil,
+              let shared = V3SharedAppGroup.sharedUserDefaults(),
+              shared.string(forKey: "liveContainerAutoRefreshExpectedRunID") == runID else {
+            throw NSError(domain: "LiveContainerRefresh.RunIdentity", code: 1,
+                userInfo: [NSLocalizedDescriptionKey:
+                    "Scheduled SideStore refresh has no matching host run identity."])
+        }
+        try await startRefresh(identifier: identifier, mangledName: mangledName)
+    }
     
     func startRefresh(identifier: String, mangledName: String) async throws {
         if sideStorePid <= 0 || getpgid(sideStorePid) <= 0, let c {

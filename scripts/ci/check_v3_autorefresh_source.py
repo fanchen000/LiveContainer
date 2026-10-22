@@ -13,7 +13,7 @@ APP = ROOT / "LiveContainerSwiftUI" / "App" / "AppDelegate.swift"
 SETTINGS = ROOT / "LiveContainerSwiftUI" / "Views" / "Settings" / "LCSettingsView.swift"
 SOURCES = [
     "LiveContainerSwiftUI/App/LiveContainerAutoRefreshAlarm.swift",
-    "LiveContainerSwiftUI/Utilities/V3SharedAppGroup.swift",
+    "SideStoreSupport/V3SharedAppGroup.swift",
     "LiveContainerSwiftUI/Views/Settings/LCEmbeddedSideStoreRefreshView.swift",
 ]
 errors = []
@@ -55,6 +55,14 @@ pbx = (ROOT / "LiveContainer.xcodeproj" / "project.pbxproj").read_text(encoding=
 require("PBXFileSystemSynchronizedRootGroup" in pbx and
         "LiveContainerSwiftUI" in pbx, "Swift files not connected to Xcode target")
 require("LiveProcess" in pbx, "LiveProcess target missing")
+bridge = (ROOT / "SideStoreSupport" / "SideStore.swift").read_text(encoding="utf-8")
+require("struct V3ShortcutRefreshRequest" in bridge and
+        "func startScheduledRefresh(" in bridge,
+        "SideStoreSupport scheduled refresh bridge not linked")
+groups = (ROOT / "SideStoreSupport" / "V3SharedAppGroup.swift").read_text(encoding="utf-8")
+require("public enum V3SharedAppGroup" in groups and
+        "public enum V3SharedRefreshStore" in groups,
+        "shared App Group implementation not exported from SideStoreSupport")
 
 if errors:
     for item in errors:

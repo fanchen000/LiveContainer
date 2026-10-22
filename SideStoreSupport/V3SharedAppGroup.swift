@@ -19,7 +19,7 @@ import Darwin
 /// on any toolchain. The two implementations cannot share a header across
 /// targets; tests/test_v3_shared_app_group.py executes the C rules and fails
 /// when this file drifts from them. Change both together.
-enum V3SharedAppGroup {
+public enum V3SharedAppGroup {
     /// LC_RULE_PACKAGED_FALLBACK_ONLY: the packaged SideStore group, including
     /// the team-suffixed variants a re-signer writes, ranks first when no
     /// runtime group was published.
@@ -106,7 +106,7 @@ enum V3SharedAppGroup {
     /// prevent. Publishing nothing leaves both processes on their packaged
     /// fallback, which LCAppGroupOrderPackaged ranks identically and which the
     /// packaging verifier constrains to groups both processes are entitled for.
-    static func publishRuntimeGroup(_ group: String?) {
+    public static func publishRuntimeGroup(_ group: String?) {
         #if canImport(Darwin)
         unsetenv(runtimeGroupEnvironmentKey)
         guard let resolved = runtimeIdentity(selectedGroup: group)?.identifier,
@@ -175,12 +175,12 @@ enum V3SharedAppGroup {
     /// rather than a process-local store: a caller that needs shared state must
     /// produce a typed recoverable failure rather than silently writing to a
     /// private store the other process cannot read.
-    static func sharedUserDefaults(selectedGroup: String? = nil, bundle: Bundle = .main) -> UserDefaults? {
+    public static func sharedUserDefaults(selectedGroup: String? = nil, bundle: Bundle = .main) -> UserDefaults? {
         guard let identity = runtimeIdentity(selectedGroup: selectedGroup, bundle: bundle) else { return nil }
         return UserDefaults(suiteName: identity.identifier)
     }
 
-    static func requireSharedUserDefaults(selectedGroup: String? = nil,
+    public static func requireSharedUserDefaults(selectedGroup: String? = nil,
                                           bundle: Bundle = .main) throws -> UserDefaults {
         guard let shared = sharedUserDefaults(selectedGroup: selectedGroup, bundle: bundle) else {
             throw Unavailable.sharedStore
@@ -210,9 +210,9 @@ enum V3SharedAppGroup {
 /// keys, and the embedded service and the background run read and write the same
 /// ones. It is deliberately not MainActor-isolated so SwiftUI property wrappers
 /// can bind to it during view construction.
-enum V3SharedRefreshStore {
-    static let isAvailable = V3SharedAppGroup.sharedUserDefaults() != nil
-    static let defaults: UserDefaults = V3SharedAppGroup.sharedUserDefaults()
+public enum V3SharedRefreshStore {
+    public static let isAvailable = V3SharedAppGroup.sharedUserDefaults() != nil
+    public static let defaults: UserDefaults = V3SharedAppGroup.sharedUserDefaults()
         ?? V3SharedAppGroup.quarantinedUserDefaults()
-    static let unavailableMessage = "LiveContainer could not open its shared refresh store, so scheduled refresh state is unavailable in this launch. Refresh All still works." + "\nError ID: SS-SAVE-D059"
+    public static let unavailableMessage = "LiveContainer could not open its shared refresh store, so scheduled refresh state is unavailable in this launch. Refresh All still works." + "\nError ID: SS-SAVE-D059"
 }

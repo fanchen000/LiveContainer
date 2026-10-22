@@ -23,5 +23,5 @@ jobs:
         run: |
           git ls-files --error-unmatch \
             LiveContainerSwiftUI/App/LiveContainerAutoRefreshAlarm.swift \
-            LiveContainerSwiftUI/Utilities/V3SharedAppGroup.swift \
+            SideStoreSupport/V3SharedAppGroup.swift \
             LiveContainerSwiftUI/Views/Settings/LCEmbeddedSideStoreRefreshView.swift
