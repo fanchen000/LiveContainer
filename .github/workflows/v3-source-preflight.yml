@@ -26,4 +26,5 @@ jobs:
             SideStoreSupport/V3SharedAppGroup.swift \
             LiveContainerSwiftUI/Utilities/CombinedFailure.swift \
             LiveContainerSwiftUI/Utilities/V3BehavioralPrimitives.swift \
+            LiveContainerSwiftUI/Utilities/V3AuthServiceSnapshot.swift \
             LiveContainerSwiftUI/Views/Settings/LCEmbeddedSideStoreRefreshView.swift

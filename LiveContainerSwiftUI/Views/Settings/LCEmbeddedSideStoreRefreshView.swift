@@ -75,9 +75,9 @@ struct LCEmbeddedSideStoreRefreshView: View {
     private let defaults = V3SharedRefreshStore.defaults
     private var sharedStoreUnavailable: Bool { !V3SharedRefreshStore.isAvailable }
     @Environment(\.layoutDirection) private var layoutDirection
-    // V3_REFRESH_PREREQUISITE_POLICY_V1: nil-default key so a missing store hides
-    // the gate instead of trapping. An unknown pairing status never blocks.
-    @Environment(\.v3StatusStore) private var v3Status
+    // Classic LiveContainer does not host the unified V3 status-store
+    // environment. Missing pairing observations are UNKNOWN, not proof of a
+    // valid or invalid pairing. The scheduler owns runtime admission.
     @State private var history: [LiveContainerRefreshHistoryEntry] = []
     @State private var isSelectingHistory = false
     @State private var selectedHistoryIDs: Set<String> = []
@@ -281,9 +281,8 @@ struct LCEmbeddedSideStoreRefreshView: View {
     // scheduler notification. A nil store (this view can be presented outside the
     // inherited environment) is treated as unknown, which never blocks.
     private var manualRefreshBlocked: Bool {
-        guard let status = v3Status else { return false }
         return V3PairingPresentationPolicy.state(
-            statusConnected: status.connected, pairingStatus: status.pairing) == .unsatisfied
+            statusConnected: false, pairingStatus: nil) == .unsatisfied
     }
 
     private func notifyManualRefresh() {

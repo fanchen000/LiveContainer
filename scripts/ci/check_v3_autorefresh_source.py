@@ -17,6 +17,7 @@ SOURCES = [
     "LiveContainerSwiftUI/Views/Settings/LCEmbeddedSideStoreRefreshView.swift",
     "LiveContainerSwiftUI/Utilities/CombinedFailure.swift",
     "LiveContainerSwiftUI/Utilities/V3BehavioralPrimitives.swift",
+    "LiveContainerSwiftUI/Utilities/V3AuthServiceSnapshot.swift",
 ]
 errors = []
 
@@ -73,6 +74,9 @@ groups = (ROOT / "SideStoreSupport" / "V3SharedAppGroup.swift").read_text(encodi
 require("public enum V3SharedAppGroup" in groups and
         "public enum V3SharedRefreshStore" in groups,
         "shared App Group implementation not exported from SideStoreSupport")
+require("public struct V3AuthServiceSnapshot" in (
+    ROOT / "LiveContainerSwiftUI" / "Utilities" / "V3AuthServiceSnapshot.swift"
+).read_text(encoding="utf-8"), "authoritative auth snapshot model missing")
 
 if errors:
     for item in errors:
