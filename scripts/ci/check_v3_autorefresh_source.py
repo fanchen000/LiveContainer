@@ -30,6 +30,9 @@ def require(condition: bool, message: str) -> None:
 with (ROOT / "LiveContainer" / "Info.plist").open("rb") as f:
     info = plistlib.load(f)
 ids = info.get("BGTaskSchedulerPermittedIdentifiers", [])
+build = info.get("CFBundleVersion")
+require(isinstance(build, str) and build.isdecimal() and int(build) > 381111,
+        "candidate build does not advance the preserved host's build 381111")
 ids = ids if isinstance(ids, list) else []
 processing = [v for v in ids if isinstance(v, str)
               and v.endswith(".sidestore.automatic-refresh")]

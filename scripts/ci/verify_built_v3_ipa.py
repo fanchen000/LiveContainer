@@ -23,6 +23,11 @@ def verify(path: Path) -> dict:
                 return result
             base = "Payload/LiveContainer.app/"
             info = plistlib.loads(z.read(base + "Info.plist"))
+            # The verified preservation baseline used build 381111. A signed
+            # in-place update must not regress to the upstream 3.8.11 build
+            # string, which may be interpreted as a lower build number.
+            version = info.get("CFBundleVersion")
+            build_monotonic = isinstance(version, str) and version.isdecimal() and int(version) > 381111
             ids = info.get("BGTaskSchedulerPermittedIdentifiers")
             if not isinstance(ids, list) or not all(isinstance(v, str) for v in ids):
                 ids = []
@@ -70,6 +75,8 @@ def verify(path: Path) -> dict:
             blockers = []
             if not pair_ok:
                 blockers.append("MISSING_OR_AMBIGUOUS_BG_TASK_IDENTIFIERS")
+            if not build_monotonic:
+                blockers.append("HOST_BUILD_NOT_NEWER_THAN_INSTALLED_BASELINE")
             if not background_ok:
                 blockers.append("MISSING_PROCESSING_OR_FETCH_BACKGROUND_MODE")
             if not runtime_ok:
@@ -82,6 +89,8 @@ def verify(path: Path) -> dict:
                 "status": "OFFLINE_V3_WIRING_PASS" if not blockers
                           else "BLOCKED_V3_AUTOMATIC_REFRESH_WIRING",
                 "host_version": info.get("CFBundleShortVersionString"),
+                "host_build": version,
+                "host_build_newer_than_baseline": build_monotonic,
                 "task_ids_pair_valid": pair_ok,
                 "background_modes_valid": background_ok,
                 "compiled_runtime_markers_found": len(discovered),
