@@ -1,0 +1,27 @@
+name: V3 auto-refresh source preflight
+
+on:
+  push:
+    branches:
+      - 'fix/v3-autorefresh-ci-*'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  source-check:
+    runs-on: ubuntu-latest
+    timeout-minutes: 8
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          submodules: false
+      - name: Check scheduler and packaging declarations
+        run: python3 scripts/ci/check_v3_autorefresh_source.py
+      - name: Check Swift package files tracked
+        run: |
+          git ls-files --error-unmatch \
+            LiveContainerSwiftUI/App/LiveContainerAutoRefreshAlarm.swift \
+            LiveContainerSwiftUI/Utilities/V3SharedAppGroup.swift \
+            LiveContainerSwiftUI/Views/Settings/LCEmbeddedSideStoreRefreshView.swift
