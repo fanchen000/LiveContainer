@@ -15,6 +15,8 @@ SOURCES = [
     "LiveContainerSwiftUI/App/LiveContainerAutoRefreshAlarm.swift",
     "SideStoreSupport/V3SharedAppGroup.swift",
     "LiveContainerSwiftUI/Views/Settings/LCEmbeddedSideStoreRefreshView.swift",
+    "LiveContainerSwiftUI/Utilities/CombinedFailure.swift",
+    "LiveContainerSwiftUI/Utilities/V3BehavioralPrimitives.swift",
 ]
 errors = []
 
@@ -55,6 +57,14 @@ pbx = (ROOT / "LiveContainer.xcodeproj" / "project.pbxproj").read_text(encoding=
 require("PBXFileSystemSynchronizedRootGroup" in pbx and
         "LiveContainerSwiftUI" in pbx, "Swift files not connected to Xcode target")
 require("LiveProcess" in pbx, "LiveProcess target missing")
+combined = (ROOT / "LiveContainerSwiftUI" / "Utilities" / "CombinedFailure.swift").read_text(encoding="utf-8")
+primitives = (ROOT / "LiveContainerSwiftUI" / "Utilities" / "V3BehavioralPrimitives.swift").read_text(encoding="utf-8")
+for marker in ("struct CombinedFailure", "enum CombinedVerification",
+               "enum V3DiagnosticPresentation", "enum V3DiagnosticCopy"):
+    require(marker in combined, "canonical failure template missing: " + marker)
+for marker in ("enum V3PairingPresentationPolicy", "enum V3RefreshTerminalRecoveryPolicy",
+               "enum V3DirectRefreshRunClaimPolicy", "struct V3RefreshRunCorrelation"):
+    require(marker in primitives, "canonical V3 primitive missing: " + marker)
 bridge = (ROOT / "SideStoreSupport" / "SideStore.swift").read_text(encoding="utf-8")
 require("struct V3ShortcutRefreshRequest" in bridge and
         "func startScheduledRefresh(" in bridge,
