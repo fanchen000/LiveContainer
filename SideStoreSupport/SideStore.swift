@@ -12,6 +12,7 @@ import UserNotifications
 /// In-process host request that cannot be confused with a guest refresh run.
 /// The host still enforces its own scheduler and verification gates.
 public struct V3ShortcutRefreshRequest {
+    private static let validOrigins: Set<String> = ["shortcut", "refreshManager"]
     public let requestID: String
     public let origin: String
 
@@ -31,10 +32,12 @@ public struct V3ShortcutRefreshRequest {
     public init?(userInfo: [AnyHashable: Any]?) {
         guard let userInfo,
               let id = userInfo["requestID"] as? String,
-              UUID(uuidString: id) != nil,
-              userInfo["origin"] as? String == "shortcut" else { return nil }
+              let normalizedID = UUID(uuidString: id)?.uuidString,
+              normalizedID == id,
+              let origin = userInfo["origin"] as? String,
+              Self.validOrigins.contains(origin) else { return nil }
         self.requestID = id
-        self.origin = "shortcut"
+        self.origin = origin
     }
 }
 

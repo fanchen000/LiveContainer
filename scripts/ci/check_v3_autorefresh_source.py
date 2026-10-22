@@ -70,6 +70,8 @@ bridge = (ROOT / "SideStoreSupport" / "SideStore.swift").read_text(encoding="utf
 require("struct V3ShortcutRefreshRequest" in bridge and
         "func startScheduledRefresh(" in bridge,
         "SideStoreSupport scheduled refresh bridge not linked")
+require('["shortcut", "refreshManager"]' in bridge,
+        "manual Refresh Manager and shortcut request origins not both admitted")
 groups = (ROOT / "SideStoreSupport" / "V3SharedAppGroup.swift").read_text(encoding="utf-8")
 require("public enum V3SharedAppGroup" in groups and
         "public enum V3SharedRefreshStore" in groups,
